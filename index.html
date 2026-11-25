@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Orbit Pad</title>
+  <meta name="description" content="A 3D spatial drum pad: every pad is a sound source floating around the listener's head." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="src/style.css" />
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+      }
+    }
+  </script>
+</head>
+<body>
+  <div id="app">
+    <header class="bar">
+      <div class="brand">
+        <span class="logo" aria-hidden="true"><i></i></span>
+        <div>
+          <h1>Orbit Pad</h1>
+          <p>spatial drum pad · 17 sources around you</p>
+        </div>
+      </div>
+
+      <div class="transport">
+        <button id="play" class="btn play" title="Play / stop (Space)" aria-label="Play">
+          <svg viewBox="0 0 24 24" class="i-play"><path d="M7 4.5v15l12-7.5z"/></svg>
+          <svg viewBox="0 0 24 24" class="i-stop"><rect x="6" y="6" width="12" height="12" rx="1.5"/></svg>
+        </button>
+        <button id="rec" class="btn rec" title="Record what you play into the pattern (Shift+R)" aria-pressed="false"><span></span>Rec</button>
+        <label class="field num">
+          <span>BPM</span>
+          <input id="bpm" type="number" min="50" max="220" step="1" />
+        </label>
+        <label class="field range">
+          <span>Swing <b id="swingV"></b></span>
+          <input id="swing" type="range" min="0" max="0.6" step="0.01" />
+        </label>
+      </div>
+
+      <div class="tools">
+        <label class="field sel">
+          <span>Kit</span>
+          <select id="kit"></select>
+        </label>
+        <label class="field sel">
+          <span>Pattern</span>
+          <select id="preset"></select>
+        </label>
+        <label class="field range">
+          <span>Room <b id="roomV"></b></span>
+          <input id="room" type="range" min="0" max="1" step="0.01" />
+        </label>
+        <label class="field range">
+          <span>Volume <b id="masterV"></b></span>
+          <input id="master" type="range" min="0" max="1.4" step="0.01" />
+        </label>
+        <button id="export" class="btn ghost" title="Render 4 loops to a binaural WAV">Export WAV</button>
+      </div>
+    </header>
+
+    <main class="stage">
+      <canvas id="view"></canvas>
+
+      <div class="views" role="group" aria-label="Camera">
+        <button data-view="orbit" class="on">Orbit</button>
+        <button data-view="front">Front</button>
+        <button data-view="behind">Behind</button>
+        <button data-view="top">Top</button>
+      </div>
+
+      <div class="hint">
+        <svg viewBox="0 0 24 24"><path d="M4 14v-2a8 8 0 0 1 16 0v2"/><rect x="3" y="14" width="4.5" height="6.5" rx="1.5"/><rect x="16.5" y="14" width="4.5" height="6.5" rx="1.5"/></svg>
+        Wear headphones. Drag to orbit · click or press keys to play
+      </div>
+
+      <aside id="editor" class="editor">
+        <div class="ed-head">
+          <span id="edKey" class="ed-key">A</span>
+          <div>
+            <div id="edName" class="ed-name">Kick</div>
+            <div id="edDir" class="ed-dir">Front</div>
+          </div>
+          <button id="edPlay" class="btn ghost sm" title="Audition">▶</button>
+        </div>
+        <label class="field sel wide">
+          <span>Sound</span>
+          <select id="edRole"></select>
+        </label>
+        <label class="field sel wide">
+          <span>Kit for this pad</span>
+          <select id="edKit"></select>
+        </label>
+        <label class="field range wide">
+          <span>Level <b id="edVolV"></b></span>
+          <input id="edVol" type="range" min="0" max="1.5" step="0.01" />
+        </label>
+        <label class="field range wide dist-field">
+          <span>Distance <b id="edDistV"></b></span>
+          <input id="edDist" type="range" min="0.6" max="5" step="0.05" />
+          <span class="dist-scale"><i>Close</i><i>Far</i></span>
+        </label>
+        <label class="field range wide">
+          <span>Pitch <b id="edPitchV"></b></span>
+          <input id="edPitch" type="range" min="-12" max="12" step="1" />
+        </label>
+        <div class="ed-row">
+          <button id="edMute" class="btn ghost sm" aria-pressed="false">Mute</button>
+          <button id="edSolo" class="btn ghost sm" aria-pressed="false">Solo</button>
+          <button id="edClear" class="btn ghost sm">Clear row</button>
+        </div>
+        <button id="distReset" class="btn ghost sm wide-btn">Reset all distances</button>
+      </aside>
+
+      <div id="tip" class="tip" hidden></div>
+      <div id="toast" class="toast" hidden></div>
+    </main>
+
+    <section class="seq" id="seq">
+      <div class="seq-head">
+        <div class="tabs" role="tablist">
+          <button role="tab" id="tabSeq" class="tab on" aria-selected="true" data-tab="seqPanel">Sequencer</button>
+          <button role="tab" id="tabLib" class="tab" aria-selected="false" data-tab="libPanel">Your sounds <span id="libCount" class="count"></span></button>
+        </div>
+        <span class="seq-help" id="seqHelp">Click a step to add it · click again for an accent · drag to paint</span>
+        <span class="song-mini" id="songMini" hidden></span>
+        <button id="clearAll" class="btn ghost sm">Clear all</button>
+        <button id="seqToggle" class="btn ghost sm" aria-expanded="true">Hide</button>
+      </div>
+      <div class="seq-scroll" id="seqPanel">
+        <div id="grid" class="grid"></div>
+      </div>
+      <div class="lib" id="libPanel" hidden>
+        <div class="lib-side">
+          <label class="drop" id="drop">
+            <input type="file" id="file" accept="audio/*,.mp3,.wav,.m4a,.aac,.ogg,.flac,.aif,.aiff" multiple hidden />
+            <svg viewBox="0 0 24 24"><path d="M12 16V4M7 9l5-5 5 5M4 20h16"/></svg>
+            <span><b>Import audio</b><small>or drop files anywhere. Full songs, loops, one-shots</small></span>
+          </label>
+          <ul id="libList" class="lib-list"></ul>
+        </div>
+        <div class="lib-main">
+          <div id="libEmpty" class="lib-empty">
+            <p><b>Bring your own sounds.</b> Import a full song and spread it around your head, or chop a beat into pieces and play them from the pads.</p>
+            <p class="dim">Files stay in this browser. Nothing is uploaded.</p>
+          </div>
+          <div id="libDetail" class="lib-detail" hidden>
+            <div class="ld-head">
+              <input id="ldName" class="ld-name" aria-label="Sound name" maxlength="40" />
+              <span id="ldDur" class="ld-dur"></span>
+              <button id="ldPreview" class="btn ghost sm">▶ Preview</button>
+              <button id="ldDelete" class="btn ghost sm danger">Delete</button>
+            </div>
+            <div class="wave-wrap"><canvas id="wave"></canvas></div>
+            <div class="ld-hint"><span id="selInfo">Drag across the waveform to pick a part. Without a selection the whole file is used.</span>
+              <button id="selClear" class="linkish" hidden>Clear selection</button></div>
+            <div class="ld-cards">
+              <div class="card">
+                <h3>Play it from pads</h3>
+                <div class="row"><button id="toPad" class="btn sm">Put on pad <b id="toPadKey" class="kbd">A</b></button>
+                  <span class="dim small">the selected pad (<span id="toPadDir">Front</span>)</span></div>
+                <div class="row"><button id="chopGo" class="btn sm">Chop</button>
+                  <span class="dim small">into</span>
+                  <select id="chopN" class="mini-sel">
+                    <option value="8">8 pads (ear-level ring)</option>
+                    <option value="4">4 pads (lower ring)</option>
+                    <option value="16">16 pads</option>
+                    <option value="17">all 17 pads</option>
+                  </select></div>
+                <p class="dim small">Chop cuts at the hits it finds (evenly if there aren't enough), then puts the slices on A S D F G H J K, Q W E R, Z X C V and T in that order. With no selection it uses the first 8 seconds.</p>
+              </div>
+              <div class="card">
+                <h3>Spread it as a song</h3>
+                <div id="songOff">
+                  <p class="dim small">Plays the full track around your head. Each part comes from a pad's spot and follows that pad's distance slider.</p>
+                  <button id="useSong" class="btn sm">Spread this track</button>
+                </div>
+                <div id="songOn" hidden>
+                  <div class="seg" id="songMode"></div>
+                  <div id="songParts" class="song-parts"></div>
+                  <div id="orbitCtl" class="song-parts" hidden>
+                    <label class="field range wide"><span>Lap time <b id="orbitSecsV"></b></span><input id="orbitSecs" type="range" min="2" max="30" step="0.5" /></label>
+                    <label class="field range wide"><span>Height <b id="orbitElV"></b></span><input id="orbitEl" type="range" min="-40" max="60" step="1" /></label>
+                  </div>
+                  <div class="row song-tr">
+                    <button id="songPlay" class="btn sm">▶ Play</button>
+                    <span id="songTime" class="mono small">0:00 / 0:00</span>
+                    <label class="field range"><span>Level <b id="songVolV"></b></span><input id="songVol" type="range" min="0" max="1.5" step="0.01" /></label>
+                  </div>
+                  <div class="row small">
+                    <label class="chk"><input type="checkbox" id="songSync" /> Start with the sequencer</label>
+                    <label class="chk"><input type="checkbox" id="songLoop" /> Loop</label>
+                    <button id="songRemove" class="linkish">Stop using as song</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <div id="dropCover" class="drop-cover" hidden><div>Drop audio to import</div></div>
+  </div>
+
+  <div id="intro" class="intro">
+    <div class="intro-card">
+      <div class="intro-orb" aria-hidden="true"><i></i><i></i><i></i></div>
+      <h2>Put your headphones on</h2>
+      <p>Every square around the figure is a speaker floating in space: in front, behind, above and below. Play a pad and the sound reaches the listener from that exact direction.</p>
+      <p class="kit-credit">Sampled drum machines: Roland TR-808, LinnDrum LM-2, MFB-512, Casio RZ-1.</p>
+      <button id="enter" class="btn play big" disabled>Loading samples…</button>
+    </div>
+  </div>
+
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>
