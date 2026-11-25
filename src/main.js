@@ -599,14 +599,14 @@ function drawWave() {
   const pk = wavePeaks(it, Math.round(W));
   const tx = (t) => (t / it.duration) * W;
   if (selRegion) {
-    g.fillStyle = 'rgba(255, 209, 102, 0.14)';
+    g.fillStyle = 'rgba(218, 123, 147, 0.16)';
     g.fillRect(tx(selRegion.start), 0, tx(selRegion.end) - tx(selRegion.start), H);
   }
   const mid = H / 2;
   for (let x = 0; x < pk.w; x++) {
     const t = (x / W) * it.duration;
     const inSel = selRegion && t >= selRegion.start && t <= selRegion.end;
-    g.fillStyle = inSel ? '#ffd166' : '#5b6178';
+    g.fillStyle = inSel ? '#DA7B93' : '#6F8E8F';
     const y1 = mid - pk.maxs[x] * mid * 0.92, y2 = mid - pk.mins[x] * mid * 0.92;
     g.fillRect(x, y1, 1, Math.max(1, y2 - y1));
   }
@@ -620,7 +620,7 @@ function drawWave() {
   });
   if (state.song.id === it.id && song.buffer) {
     const x = tx(song.position());
-    g.fillStyle = '#3ee0ff'; g.fillRect(x - 1, 0, 2, H);
+    g.fillStyle = '#F5E3D3'; g.fillRect(x - 1, 0, 2, H);
   }
 }
 new ResizeObserver(() => drawWave()).observe(wave);
