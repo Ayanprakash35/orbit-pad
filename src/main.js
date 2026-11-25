@@ -112,12 +112,14 @@ function distWord(d) {
   return 'very far';
 }
 const fmtDist = (d) => d.toFixed(1) + ' m';
+// the word is dropped on narrow screens so the label never gets cut off
+function showDist(d) { ed.distV.innerHTML = `${fmtDist(d)}<span class="dw"> · ${distWord(d)}</span>`; }
 function setDistance(i, d) {
   d = Math.round(d * 20) / 20;
   engine.setDistance(i, d);
   view.setPadDistance(i, d);
   if (rowDist[i]) { rowDist[i].value = d; rowDist[i].title = `Distance: ${fmtDist(d)} (${distWord(d)})`; }
-  if (state.selected === i) { ed.dist.value = d; ed.distV.textContent = `${fmtDist(d)} · ${distWord(d)}`; }
+  if (state.selected === i) { ed.dist.value = d; showDist(d); }
   save();
 }
 
@@ -186,7 +188,7 @@ function buildGrid() {
   grid.appendChild(document.createElement('div'));
   const dh = document.createElement('div');
   dh.className = 'steps-head dist-head';
-  dh.innerHTML = '<span>near</span><span>far</span>';
+  dh.innerHTML = '<span id="distlbl" class="sr">Distance for</span><span aria-hidden="true">near</span><span aria-hidden="true">far</span>';
   grid.appendChild(dh);
   for (let s = 0; s < STEPS; s++) {
     const h = document.createElement('div');
@@ -214,7 +216,9 @@ function buildGrid() {
     const dist = document.createElement('input');
     dist.type = 'range'; dist.className = 'row-dist';
     dist.min = 0.6; dist.max = 5; dist.step = 0.05; dist.value = state.pads[i].dist;
-    dist.setAttribute('aria-label', `${L.key} distance`);
+    name.id = 'rowname-' + i;
+    dist.id = 'rowdist-' + i;
+    dist.setAttribute('aria-labelledby', `distlbl rowname-${i}`);
     dist.title = `Distance: ${fmtDist(state.pads[i].dist)} (${distWord(state.pads[i].dist)})`;
     dist.addEventListener('input', () => { setDistance(i, +dist.value); if (state.selected !== i) selectPad(i); });
     dist.addEventListener('change', () => hit(i, 0.9));
@@ -314,7 +318,7 @@ function selectPad(i) {
   ed.kit.value = p.kit;
   ed.kit.disabled = !!p.custom;
   ed.vol.value = p.vol; ed.volV.textContent = Math.round(p.vol * 100) + '%';
-  ed.dist.value = p.dist; ed.distV.textContent = `${fmtDist(p.dist)} · ${distWord(p.dist)}`;
+  ed.dist.value = p.dist; showDist(p.dist);
   ed.pitch.value = p.pitch; ed.pitchV.textContent = (p.pitch > 0 ? '+' : '') + p.pitch + ' st';
   updateToPad();
   ed.mute.setAttribute('aria-pressed', p.mute);
@@ -347,6 +351,11 @@ $('#distReset').addEventListener('click', () => { for (let i = 0; i < N; i++) se
 ed.mute.addEventListener('click', () => { sel().mute = !sel().mute; padChanged(); });
 ed.solo.addEventListener('click', () => { sel().solo = !sel().solo; padChanged(); });
 $('#edPlay').addEventListener('click', () => hit(state.selected, 1));
+$('#edMore').addEventListener('click', (e) => {
+  const open = $('#editor').classList.toggle('open');
+  e.currentTarget.setAttribute('aria-expanded', open);
+  e.currentTarget.textContent = open ? 'Done' : 'Edit';
+});
 $('#edClear').addEventListener('click', () => { state.pattern[state.selected].fill(0); refreshRow(state.selected); save(); });
 
 // ---------- top bar ----------

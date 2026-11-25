@@ -5,11 +5,11 @@
   --line: rgba(255, 255, 255, 0.08);
   --line-2: rgba(255, 255, 255, 0.14);
   --text: #e9ebf2;
-  --muted: #8a8fa3;
-  --dim: #5b6074;
+  --muted: #a4a9bc;
+  --dim: #8a90a6;
   --accent: #3ee0ff;
   --rec: #ff4f6d;
-  --kick: #ff7a3d; --snare: #ff4f8b; --metal: #3ee0ff; --tom: #a27dff; --perc: #5cf29a;
+  --kick: #ff7a3d; --snare: #ff4f8b; --metal: #3ee0ff; --tom: #4d8dff; --perc: #5cf29a;
   --radius: 10px;
   color-scheme: dark;
 }
@@ -57,8 +57,16 @@ input:focus-visible, select:focus-visible, button:focus-visible { outline: 2px s
 
 .btn { border: 1px solid var(--line-2); background: #15161e; border-radius: 8px; height: 34px; padding: 0 13px;
   cursor: pointer; font-weight: 600; font-size: 13px; display: inline-flex; align-items: center; gap: 7px; transition: background .15s, border-color .15s, transform .08s; }
-.btn:hover { background: #1c1e28; border-color: rgba(255,255,255,.22); }
-.btn:active { transform: translateY(1px); }
+.btn:hover { background: #1c1e28; border-color: rgba(255,255,255,.22); transform: translateY(-1px); }
+.btn:active { transform: translateY(1px) scale(.98); }
+.views button, .tab, .seg button { transition: background .15s, color .15s, transform .08s; }
+.views button:hover, .tab:hover { color: var(--text); }
+.views button:active, .tab:active, .seg button:active { transform: translateY(1px); }
+.views button:focus-visible, .tab:focus-visible, .seg button:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.skip { position: absolute; left: 12px; top: -60px; z-index: 30; padding: 10px 14px; border-radius: 8px; background: var(--text); color: #0a0b10;
+  font-weight: 700; text-decoration: none; transition: top .15s; }
+.skip:focus { top: 10px; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .btn.ghost { background: transparent; }
 .btn.sm { height: 28px; padding: 0 10px; font-size: 12px; }
 .btn[aria-pressed=true] { background: #23263a; border-color: var(--accent); color: var(--accent); }
@@ -106,7 +114,7 @@ input:focus-visible, select:focus-visible, button:focus-visible { outline: 2px s
 
 /* ---------- sequencer ---------- */
 .seq { border-top: 1px solid var(--line); background: #090a0f; position: relative; z-index: 2; }
-.seq-head { display: flex; align-items: center; gap: 12px; padding: 8px 16px; }
+.seq-head { display: flex; align-items: center; gap: 8px 12px; padding: 8px 16px; flex-wrap: wrap; }
 .seq-head h2 { margin: 0; font-size: 13px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
 .seq-help { color: var(--dim); font-size: 12px; margin-right: auto; }
 .seq-scroll { max-height: min(30vh, 300px); overflow: auto; padding: 0 16px 12px; }
@@ -242,4 +250,28 @@ input:focus-visible, select:focus-visible, button:focus-visible { outline: 2px s
 @media (max-width: 900px) {
   .lib { grid-template-columns: 1fr; padding: 0 12px 10px; max-height: 38vh; }
   .song-mini { display: none; }
+}
+
+@media (max-width: 600px) { .dw { display: none; } }
+.ed-more { display: none; }
+@media (max-width: 900px) {
+  /* phones: the pad editor folds down to one line so the 3D view keeps its room */
+  .ed-more { display: inline-flex; }
+  .editor:not(.open) > :not(.ed-head) { display: none !important; }
+  .editor:not(.open) { max-height: none; }
+  .bar .tools { flex-wrap: nowrap; overflow-x: auto; width: 100%; padding-bottom: 2px; scrollbar-width: none; }
+  .bar .tools::-webkit-scrollbar { display: none; }
+  .bar .tools > * { flex: none; }
+  .seq-head { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+  .seq-head > * { flex: none; }
+}
+/* touch screens: every control at least 44px tall */
+@media (pointer: coarse), (max-width: 600px) {
+  .btn, .btn.sm, .field input[type=number], .field select, .mini-sel, input[type=range] { min-height: 44px; }
+  .views button, .tab, .seg button { min-height: 44px; padding-left: 12px; padding-right: 12px; }
+  .grid { grid-auto-rows: minmax(44px, auto); }
+  .ring-label, .steps-head { min-height: 0; }
+  .row-name, .cell { height: 44px; }
+  .row-dist { height: 44px; }
+  .ed-key { width: 44px; height: 44px; }
 }

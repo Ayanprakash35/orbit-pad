@@ -7,7 +7,7 @@ import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { PAD_LAYOUT, HEAD, RADIUS, padPosition } from './pads.js';
 
 export const GROUP_COLOR = {
-  kick: '#ff7a3d', snare: '#ff4f8b', metal: '#3ee0ff', tom: '#a27dff', perc: '#5cf29a', user: '#ffd166',
+  kick: '#ff7a3d', snare: '#ff4f8b', metal: '#3ee0ff', tom: '#4d8dff', perc: '#5cf29a', user: '#ffd166',
 };
 
 const PAD_SIZE = 0.5;
@@ -116,7 +116,7 @@ export function createScene(canvas, { onPadDown, onHover }) {
   key.shadow.camera.right = key.shadow.camera.top = 3;
   key.shadow.radius = 6;
   scene.add(key);
-  const rim = new THREE.DirectionalLight(0x7f6bff, 1.0);
+  const rim = new THREE.DirectionalLight(0x4d8dff, 1.0);
   rim.position.set(-4, 2.5, 3);
   scene.add(rim);
 
