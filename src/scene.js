@@ -7,7 +7,7 @@ import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { PAD_LAYOUT, HEAD, RADIUS, padPosition } from './pads.js';
 
 export const GROUP_COLOR = {
-  kick: '#DA7B93', snare: '#F3C1CC', metal: '#7CC7C4', tom: '#4FA3A1', perc: '#B9CFD6', user: '#F5E3D3',
+  kick: '#ff7a3d', snare: '#ff4f8b', metal: '#3ee0ff', tom: '#a27dff', perc: '#5cf29a', user: '#ffd166',
 };
 
 const PAD_SIZE = 0.5;
@@ -17,7 +17,7 @@ function labelTexture(key, name, color) {
   c.width = c.height = 256;
   const g = c.getContext('2d');
   const grad = g.createLinearGradient(0, 0, 256, 256);
-  grad.addColorStop(0, '#3d1d25'); grad.addColorStop(1, '#2E151B');
+  grad.addColorStop(0, '#15161d'); grad.addColorStop(1, '#0b0c11');
   g.fillStyle = grad; g.fillRect(0, 0, 256, 256);
   g.strokeStyle = color; g.globalAlpha = 0.9; g.lineWidth = 10;
   g.strokeRect(12, 12, 232, 232);
@@ -26,7 +26,7 @@ function labelTexture(key, name, color) {
   g.font = '700 118px "Space Grotesk", system-ui, sans-serif';
   g.textAlign = 'center'; g.textBaseline = 'middle';
   g.fillText(key, 128, 112);
-  g.fillStyle = '#F1E8EA';
+  g.fillStyle = '#e9ebf2';
   let fs = 30;
   const label = name.toUpperCase();
   do { g.font = `600 ${fs}px "Space Grotesk", system-ui, sans-serif`; } while (g.measureText(label).width > 214 && --fs > 16);
@@ -39,9 +39,9 @@ function labelTexture(key, name, color) {
 
 function buildFigure() {
   const fig = new THREE.Group();
-  const skin = new THREE.MeshStandardMaterial({ color: 0xd9dfe3, roughness: 0.5, metalness: 0.05 });
-  const dark = new THREE.MeshStandardMaterial({ color: 0x2E151B, roughness: 0.35, metalness: 0.4 });
-  const glow = new THREE.MeshStandardMaterial({ color: 0xDA7B93, emissive: 0xDA7B93, emissiveIntensity: 1.6 });
+  const skin = new THREE.MeshStandardMaterial({ color: 0xc9ced8, roughness: 0.5, metalness: 0.05 });
+  const dark = new THREE.MeshStandardMaterial({ color: 0x1b1d25, roughness: 0.35, metalness: 0.4 });
+  const glow = new THREE.MeshStandardMaterial({ color: 0x3ee0ff, emissive: 0x3ee0ff, emissiveIntensity: 1.6 });
   const add = (geo, mat, x, y, z, rx = 0, ry = 0, rz = 0, s) => {
     const m = new THREE.Mesh(geo, mat);
     m.position.set(x, y, z); m.rotation.set(rx, ry, rz);
@@ -89,8 +89,8 @@ export function createScene(canvas, { onPadDown, onHover }) {
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
   const scene = new THREE.Scene();
-  scene.background = new THREE.Color(0x2F4454);
-  scene.fog = new THREE.FogExp2(0x2F4454, 0.045);
+  scene.background = new THREE.Color(0x06070b);
+  scene.fog = new THREE.FogExp2(0x06070b, 0.055);
 
   const camera = new THREE.PerspectiveCamera(42, 1, 0.05, 100);
   camera.position.set(4.0, 2.9, 4.7);
@@ -107,7 +107,7 @@ export function createScene(canvas, { onPadDown, onHover }) {
   controls.addEventListener('start', () => { controls.autoRotate = false; });
 
   // lights
-  scene.add(new THREE.HemisphereLight(0xcfe3e4, 0x2E151B, 0.75));
+  scene.add(new THREE.HemisphereLight(0x9fb4ff, 0x0b0b10, 0.55));
   const key = new THREE.DirectionalLight(0xffffff, 1.6);
   key.position.set(3, 6, 2);
   key.castShadow = true;
@@ -116,28 +116,28 @@ export function createScene(canvas, { onPadDown, onHover }) {
   key.shadow.camera.right = key.shadow.camera.top = 3;
   key.shadow.radius = 6;
   scene.add(key);
-  const rim = new THREE.DirectionalLight(0xDA7B93, 1.3);
+  const rim = new THREE.DirectionalLight(0x7f6bff, 1.0);
   rim.position.set(-4, 2.5, 3);
   scene.add(rim);
 
   // floor
   const floor = new THREE.Mesh(new THREE.CircleGeometry(9, 96),
-    new THREE.MeshStandardMaterial({ color: 0x1C3334, roughness: 0.95, metalness: 0 }));
+    new THREE.MeshStandardMaterial({ color: 0x0c0d13, roughness: 0.9, metalness: 0 }));
   floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true;
   scene.add(floor);
-  const grid = new THREE.PolarGridHelper(RADIUS + 0.6, 8, 6, 96, 0x376E6F, 0x2a5051);
+  const grid = new THREE.PolarGridHelper(RADIUS + 0.6, 8, 6, 96, 0x2a2e3d, 0x1a1c26);
   grid.position.y = 0.002;
   scene.add(grid);
   // "front" marker on the floor
   const arrowShape = new THREE.Shape();
   arrowShape.moveTo(0, -0.16); arrowShape.lineTo(0.11, 0.04); arrowShape.lineTo(-0.11, 0.04); arrowShape.closePath();
   const arrow = new THREE.Mesh(new THREE.ShapeGeometry(arrowShape),
-    new THREE.MeshBasicMaterial({ color: 0xDA7B93, transparent: true, opacity: 0.85 }));
+    new THREE.MeshBasicMaterial({ color: 0x3ee0ff, transparent: true, opacity: 0.75 }));
   arrow.rotation.x = -Math.PI / 2; arrow.position.set(0, 0.006, -0.75);
   scene.add(arrow);
   {
     const c = document.createElement('canvas'); c.width = 256; c.height = 64;
-    const g = c.getContext('2d'); g.fillStyle = '#DA7B93';
+    const g = c.getContext('2d'); g.fillStyle = '#3ee0ff';
     g.font = '600 34px "Space Grotesk", system-ui'; g.textAlign = 'center'; g.textBaseline = 'middle';
     g.fillText('FRONT', 128, 32);
     const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace;
@@ -151,7 +151,7 @@ export function createScene(canvas, { onPadDown, onHover }) {
   const guides = new THREE.Group();
   for (const el of [-38, 0, 40]) {
     const r = RADIUS * Math.cos((el * Math.PI) / 180);
-    guides.add(ringLine(r, HEAD.y + RADIUS * Math.sin((el * Math.PI) / 180), 0x9cc3c3, el === 0 ? 0.32 : 0.18));
+    guides.add(ringLine(r, HEAD.y + RADIUS * Math.sin((el * Math.PI) / 180), 0x5a6488, el === 0 ? 0.32 : 0.18));
   }
   for (let k = 0; k < 4; k++) {
     const pts = [];
@@ -160,7 +160,7 @@ export function createScene(canvas, { onPadDown, onHover }) {
       pts.push(new THREE.Vector3(RADIUS * Math.cos(e), HEAD.y + RADIUS * Math.sin(e), 0));
     }
     const l = new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts),
-      new THREE.LineBasicMaterial({ color: 0x9cc3c3, transparent: true, opacity: 0.08, depthWrite: false }));
+      new THREE.LineBasicMaterial({ color: 0x5a6488, transparent: true, opacity: 0.08, depthWrite: false }));
     l.rotation.y = (k * Math.PI) / 4;
     const l2 = l.clone(); l2.rotation.y += Math.PI;
     guides.add(l, l2);
@@ -185,7 +185,7 @@ export function createScene(canvas, { onPadDown, onHover }) {
     group.position.set(pos.x, pos.y, pos.z);
     if (layout.ring === 'top') group.up.set(0, 0, -1);
     group.lookAt(headV);
-    const side = new THREE.MeshStandardMaterial({ color: 0x2E151B, roughness: 0.45, metalness: 0.35, emissive: 0x000000 });
+    const side = new THREE.MeshStandardMaterial({ color: 0x1a1c25, roughness: 0.4, metalness: 0.5, emissive: 0x000000 });
     const faceIn = new THREE.MeshStandardMaterial({ roughness: 0.45, metalness: 0.1, emissiveIntensity: 0.35 });
     const faceOut = new THREE.MeshStandardMaterial({ roughness: 0.45, metalness: 0.1, emissiveIntensity: 0.35 });
     const mesh = new THREE.Mesh(box, [side, side, side, side, faceIn, faceOut]);
@@ -258,14 +258,14 @@ export function createScene(canvas, { onPadDown, onHover }) {
 
   // the orbiting song, drawn as a glowing orb with a trail
   const orb = new THREE.Group();
-  const orbCore = new THREE.Mesh(new THREE.SphereGeometry(0.13, 24, 16), new THREE.MeshBasicMaterial({ color: 0xF5E3D3 }));
-  const orbHalo = new THREE.Mesh(new THREE.SphereGeometry(0.3, 24, 16), new THREE.MeshBasicMaterial({ color: 0xF5E3D3, transparent: true, opacity: 0.1, blending: THREE.AdditiveBlending, depthWrite: false }));
+  const orbCore = new THREE.Mesh(new THREE.SphereGeometry(0.13, 24, 16), new THREE.MeshBasicMaterial({ color: 0xffd166 }));
+  const orbHalo = new THREE.Mesh(new THREE.SphereGeometry(0.3, 24, 16), new THREE.MeshBasicMaterial({ color: 0xffd166, transparent: true, opacity: 0.18, blending: THREE.AdditiveBlending, depthWrite: false }));
   orb.add(orbCore, orbHalo);
   orb.visible = false;
   scene.add(orb);
   const trail = [];
   for (let k = 0; k < 14; k++) {
-    const m = new THREE.Mesh(new THREE.SphereGeometry(0.07, 12, 8), new THREE.MeshBasicMaterial({ color: 0xF5E3D3, transparent: true, opacity: 0.3 * (1 - k / 14), blending: THREE.AdditiveBlending, depthWrite: false }));
+    const m = new THREE.Mesh(new THREE.SphereGeometry(0.07, 12, 8), new THREE.MeshBasicMaterial({ color: 0xffd166, transparent: true, opacity: 0.3 * (1 - k / 14), blending: THREE.AdditiveBlending, depthWrite: false }));
     m.visible = false; scene.add(m); trail.push(m);
   }
   const trailPts = [];
@@ -273,11 +273,11 @@ export function createScene(canvas, { onPadDown, onHover }) {
     if (!pos) { orb.visible = false; trail.forEach((m) => (m.visible = false)); trailPts.length = 0; return; }
     orb.visible = true;
     orb.position.set(pos.x, pos.y, pos.z);
-    orbHalo.scale.setScalar(1 + Math.min(1.5, level * 3));
+    orbHalo.scale.setScalar(1 + level * 4);
     trailPts.unshift(orb.position.clone());
     if (trailPts.length > trail.length * 2) trailPts.pop();
     trail.forEach((m, k) => { const q = trailPts[k * 2]; m.visible = !!q; if (q) m.position.copy(q); });
-    glowColor.set(0xF5E3D3); glowAmt = Math.max(glowAmt, level * 1.2);
+    glowColor.set(0xffd166); glowAmt = Math.max(glowAmt, level * 1.2);
   }
 
   function select(i) { pads.forEach((p, k) => (p.selected = k === i)); }
@@ -285,7 +285,7 @@ export function createScene(canvas, { onPadDown, onHover }) {
   // bloom
   const composer = new EffectComposer(renderer);
   composer.addPass(new RenderPass(scene, camera));
-  const bloom = new UnrealBloomPass(new THREE.Vector2(1, 1), 0.42, 0.45, 0.86);
+  const bloom = new UnrealBloomPass(new THREE.Vector2(1, 1), 0.55, 0.5, 0.7);
   composer.addPass(bloom);
   composer.addPass(new OutputPass());
 
@@ -375,7 +375,7 @@ export function createScene(canvas, { onPadDown, onHover }) {
       p.hit = Math.max(0, p.hit - dt * 4.2);
       const target = (i === hovered ? 1 : 0) + (p.selected ? 0.6 : 0);
       p.hover += (target - p.hover) * Math.min(1, dt * 12);
-      const glow = 0.2 + p.hover * 0.25 + p.hit * 1.9;
+      const glow = 0.24 + p.hover * 0.3 + p.hit * 2.4;
       p.faceIn.emissiveIntensity = glow; p.faceOut.emissiveIntensity = glow;
       p.side.emissive.copy(p.color).multiplyScalar(p.hit * 0.8 + (p.selected ? 0.12 : 0));
       p.edges.material.opacity = 0.35 + p.hover * 0.45 + p.hit * 0.6;
